@@ -45,6 +45,8 @@ const zh: LANG_MESSAGE = {
   flushSmartWeightsSuccess: 'Smart权重清空成功',
   restartCoreSuccess: '核心重启成功',
   reloadConfigsSuccess: '配置重载成功',
+  refreshNikkiSubscription: '更新 Nikki 订阅',
+  refreshNikkiSubscriptionSuccess: 'Nikki 订阅已更新并重载',
   updateGeoSuccess: 'GEO数据库更新成功',
   actionRunning: '{action}执行中…',
   chains: '代理链',

@@ -45,6 +45,8 @@ const ru: LANG_MESSAGE = {
   flushSmartWeightsSuccess: 'Smart веса успешно очищены',
   restartCoreSuccess: 'Ядро успешно перезапущено',
   reloadConfigsSuccess: 'Конфигурации успешно перезагружены',
+  refreshNikkiSubscription: 'Обновить подписку Nikki',
+  refreshNikkiSubscriptionSuccess: 'Подписка Nikki обновлена и конфигурация перезагружена',
   updateGeoSuccess: 'Geo база данных успешно обновлена',
   actionRunning: '{action}: выполняется…',
   chains: 'Цепочки',

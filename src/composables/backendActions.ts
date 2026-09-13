@@ -8,6 +8,7 @@
 //
 // 需要先收集参数的两个动作(升级内核、更新配置)走弹窗。弹窗的开关也在这里,
 // 弹窗本体挂在 App.vue —— 侧边栏常驻但设置页不常驻,挂在设置页里侧边栏就拉不起来。
+import { refreshNikkiSubscriptionAPI } from '@/api/nikki'
 import { can } from '@/assembly/backend'
 import {
   fetchConfigs,
@@ -30,6 +31,7 @@ import {
   ArrowDownTrayIcon,
   ArrowPathIcon,
   ArrowPathRoundedSquareIcon,
+  ArrowsUpDownIcon,
   ArrowUpCircleIcon,
   PencilSquareIcon,
   TrashIcon,
@@ -62,6 +64,7 @@ const reloadAll = () => {
 
 const isCoreRestarting = ref(false)
 const isConfigReloading = ref(false)
+const isNikkiSubscriptionRefreshing = ref(false)
 const isGeoUpdating = ref(false)
 const isDNSCacheFlushing = ref(false)
 const isFakeIPFlushing = ref(false)
@@ -156,6 +159,24 @@ export const backendActions = computed<BackendAction[]>(() => {
           reloadConfigsAPI,
           'reloadConfigsSuccess',
           reloadAll,
+        ),
+    })
+  }
+
+  if (activeBackend.value.host === '192.168.31.2') {
+    actions.push({
+      key: k.refreshNikkiSubscription,
+      label: 'refreshNikkiSubscription',
+      icon: ArrowsUpDownIcon,
+      running: isNikkiSubscriptionRefreshing.value,
+      opensModal: false,
+      run: () =>
+        runOnce(
+          'refreshNikkiSubscription',
+          isNikkiSubscriptionRefreshing,
+          refreshNikkiSubscriptionAPI,
+          'refreshNikkiSubscriptionSuccess',
+          () => setTimeout(reloadAll, 3000),
         ),
     })
   }

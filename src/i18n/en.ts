@@ -43,6 +43,8 @@ const en = {
   flushSmartWeightsSuccess: 'Smart weights flushed successfully',
   restartCoreSuccess: 'Core restarted successfully',
   reloadConfigsSuccess: 'Configs reloaded successfully',
+  refreshNikkiSubscription: 'Refresh Nikki subscription',
+  refreshNikkiSubscriptionSuccess: 'Nikki subscription refreshed and reloaded',
   updateGeoSuccess: 'Geo database updated successfully',
   actionRunning: '{action}...',
   chains: 'Chains',

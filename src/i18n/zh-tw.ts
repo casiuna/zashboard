@@ -45,6 +45,8 @@ const zhTW: LANG_MESSAGE = {
   flushSmartWeightsSuccess: 'Smart權重清空成功',
   restartCoreSuccess: '核心重啟成功',
   reloadConfigsSuccess: '配置重載成功',
+  refreshNikkiSubscription: '更新 Nikki 訂閱',
+  refreshNikkiSubscriptionSuccess: 'Nikki 訂閱已更新並重新載入',
   updateGeoSuccess: 'GEO資料庫更新成功',
   actionRunning: '{action}執行中…',
   chains: '代理鏈',

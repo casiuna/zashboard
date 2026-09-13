@@ -58,6 +58,11 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
         section: 'settingsSectionCoreOperations',
       },
       {
+        key: `${SETTINGS_MENU_KEY.backend}.refreshNikkiSubscription`,
+        label: 'refreshNikkiSubscription',
+        section: 'settingsSectionCoreOperations',
+      },
+      {
         key: `${SETTINGS_MENU_KEY.backend}.updateConfigs`,
         label: 'updateConfigs',
         section: 'settingsSectionCoreOperations',
