@@ -3,9 +3,8 @@
     ref="parentRef"
     class="base-container m-3 h-full overflow-auto backdrop-blur-none!"
   >
-    <!-- 玻璃挂在这一层：表格用撑高的空行虚拟，盒子高度就是虚拟总高（见 appearance.css） -->
     <div class="table-glass min-w-min">
-      <table :class="['table', sizeOfTable]">
+      <table :class="['table', sizeOfTable, tableClass]">
         <thead
           class="bg-base-100 border-base-300/60 sticky top-0 z-10 border-b backdrop-blur-none!"
         >
@@ -17,10 +16,14 @@
               v-for="header in headerGroup.headers"
               :key="header.id"
               :colSpan="header.colSpan"
-              :class="[inheritedStyle, header.column.getCanSort() && 'cursor-pointer select-none']"
+              :class="[
+                inheritedStyle,
+                header.column.columnDef.meta?.headerClass,
+                header.column.getCanSort() && 'cursor-pointer select-none',
+              ]"
               @click="header.column.getToggleSortingHandler()?.($event)"
             >
-              <div class="flex items-center gap-1 whitespace-nowrap">
+              <div class="inline-flex items-center gap-1 whitespace-nowrap">
                 <FlexRender
                   v-if="!header.isPlaceholder"
                   :render="header.column.columnDef.header"
@@ -51,10 +54,6 @@
             </td>
           </tr>
           <template v-else>
-            <!--
-              行高固定,用上下两个撑高的空行代替 transform 定位:表格行不能脱离文档流,
-              spacer 是唯一能让 tbody 高度与虚拟总高对齐、又不影响 sticky thead 的写法。
-            -->
             <tr
               v-if="paddingTop > 0"
               :style="{ height: `${paddingTop}px` }"
@@ -63,7 +62,7 @@
               v-for="virtualRow in virtualRows"
               :key="virtualRow.key.toString()"
               :style="{ height: `${estimateSize}px` }"
-              class="hover:bg-primary/85! hover:text-primary-content!"
+              class="hover:bg-(--table-hover)!"
               :class="[
                 virtualRow.index % 2 === 0 && 'table-row-stripe',
                 rowClass?.(rows[virtualRow.index].original),
@@ -100,7 +99,7 @@
 import { TABLE_SIZE } from '@/constant'
 import { backgroundImage } from '@/helper/indexeddb'
 import { showNotification } from '@/helper/notification'
-import { useStorage } from '@/helper/storage'
+import { useStorage } from '@/composables/use-storage'
 import { tableSize } from '@/store/settings'
 import { ArrowDownCircleIcon, ArrowUpCircleIcon, CircleStackIcon } from '@heroicons/vue/24/outline'
 import {
@@ -122,13 +121,13 @@ const props = withDefaults(
   defineProps<{
     data: T[]
     columns: ColumnDef<T>[]
-    // 排序状态落盘的 key,同一个表格换页面回来还在
     sortingKey: string
     initialSorting?: SortingState
     estimateSize?: number
     overscan?: number
     columnVisibility?: VisibilityState
     rowClass?: (row: T) => string | undefined
+    tableClass?: string
   }>(),
   {
     estimateSize: 36,
@@ -208,6 +207,10 @@ const inheritedStyle = computed(() => {
 })
 
 const cellTitle = (cell: Cell<T, unknown>) => {
+  if (cell.column.columnDef.meta?.noCellTitle) {
+    return undefined
+  }
+
   const value = cell.getValue()
 
   return typeof value === 'string' || typeof value === 'number' ? String(value) : undefined
@@ -222,7 +225,6 @@ const copyToClipboard = async (text: string) => {
       timeout: 2000,
     })
   } catch {
-    // 降级处理
     const textArea = document.createElement('textarea')
 
     textArea.value = text

@@ -1,17 +1,8 @@
-import { useCtrlsBar } from '@/composables/useCtrlsBar'
+import { initLogs, isPaused, logLevel, logs, supportedLogLevels } from '@/assembly/logs'
+import { useCtrlsBar } from '@/composables/use-ctrls-bar'
+import { useTooltip } from '@/composables/use-tooltip'
 import { LIST_DISPLAY_STYLE, LOG_LEVEL } from '@/constant'
-import { useTooltip } from '@/helper/tooltip'
-import {
-  initLogs,
-  isPaused,
-  logFilter,
-  logFilterEnabled,
-  logFilterRegex,
-  logLevel,
-  logTypeFilter,
-  logs,
-  supportedLogLevels,
-} from '@/store/logs'
+import { logFilter, logFilterEnabled, logFilterRegex, logTypeFilter } from '@/store/logs'
 import { logDisplayStyle, logRetentionLimit, logSearchHistory } from '@/store/settings'
 import {
   ArrowDownTrayIcon,
@@ -57,7 +48,6 @@ export default defineComponent({
 
     watch(logFilter, insertLogSearchHistory)
 
-    // 可选级别由内核决定,收敛在组装层(见 assembly/logs)。
     const logLevels = supportedLogLevels
 
     const logFilterOptions = computed(() => {

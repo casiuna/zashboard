@@ -28,7 +28,6 @@
       <HighlightText
         :text="log.payload"
         :filter="logFilter"
-        ansi
       />
     </div>
   </div>
@@ -36,7 +35,7 @@
 
 <script setup lang="ts">
 import HighlightText from '@/components/common/HighlightText.vue'
-import { useBounceOnVisible } from '@/composables/bouncein'
+import { useBounceOnVisible } from '@/composables/use-bounce-on-visible'
 import { LOG_LEVEL } from '@/constant'
 import { logFilter } from '@/store/logs'
 import type { LogWithSeq } from '@/types'

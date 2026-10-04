@@ -1,6 +1,7 @@
-// 只剩 Clash REST/WS 一种后端。字段保留是为了让旧记录的迁移与 URL 参数解析
-// 有个明确的落点,不必在每处都写字面量。
-export type BackendType = 'clash'
+export * from './dae'
+import type { DaeConnectionRawMessage } from './dae'
+
+export type BackendType = 'clash' | 'dae'
 
 export type Backend = {
   type: BackendType
@@ -8,7 +9,8 @@ export type Backend = {
   host: string
   port: string
   secondaryPath: string
-  password: string // Clash secret
+  password: string
+  username?: string
   uuid: string
   label?: string
   disableUpgradeCore?: boolean
@@ -30,6 +32,7 @@ export type Config = {
   ipv6: boolean
   tun: {
     enable: boolean
+    stack?: string
   }
 }
 
@@ -39,6 +42,7 @@ export type History = {
 }[]
 
 export type Proxy = {
+  id?: string
   name: string
   type: string
   history: History
@@ -71,6 +75,7 @@ export type SubscriptionInfo = {
 
 export type ProxyProvider = {
   subscriptionInfo?: SubscriptionInfo
+  id?: string
   name: string
   proxies: Proxy[]
   testUrl: string
@@ -84,9 +89,7 @@ export type Rule = {
   proxy: string
   size: number
   uuid: string
-  // sing-box-reFind
   disabled?: boolean
-  // mihomo
   index: number
   extra?: {
     disabled: false
@@ -144,7 +147,7 @@ export type ClashConnectionRawMessage = {
   }
 }
 
-export type ConnectionRawMessage = ClashConnectionRawMessage
+export type ConnectionRawMessage = ClashConnectionRawMessage | DaeConnectionRawMessage
 
 export type Connection = ConnectionRawMessage & {
   downloadSpeed: number
@@ -185,17 +188,12 @@ export type SourceIPLabel = {
   scope?: string[]
 }
 
-// smart core
 export interface NodeRank {
   Name: string
   Rank: string
   Weight: number
 }
 
-// honk core —— GET /stats 的用户态运行时快照。
-// 该端点还会返回就绪池 / warm 资源 / TCP / Score / UDP-NFQUEUE 等内部计量
-// (完整 schema 见 honk 仓库 doc/en/reference/api.md 的「GET /stats」一节),
-// 面板只取其中的出站统计,故这里只声明用得到的部分。
 export type HonkStats = {
   outbounds: {
     name: string

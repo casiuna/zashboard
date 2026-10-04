@@ -1,29 +1,35 @@
 <script setup lang="ts">
-// 后端会话(内核探测 + 首屏数据 + 常驻流)自己跟着 activeBackend 走,
-// 这里只需保证模块被加载,不依赖任何页面挂载。
 import './assembly/session'
+import './store/conn-history'
 import { computed, onMounted, ref, type Ref, watch } from 'vue'
 import { RouterView } from 'vue-router'
 import BackendConnectionError from './components/common/BackendConnectionError.vue'
 import BackendSwitchToast from './components/common/BackendSwitchToast.vue'
 import BackendManager from './components/settings/backend/BackendManager.vue'
+import DaeConfigModal from './components/settings/backend/DaeConfigModal.vue'
 import UpdateConfigModal from './components/settings/backend/UpdateConfigModal.vue'
 import UpgradeCoreModal from './components/settings/backend/UpgradeCoreModal.vue'
-import { useAppearanceVars } from './composables/useAppearanceVars'
-import { showUpdateConfigModal, showUpgradeCoreModal } from './composables/backendActions'
+import { useAppearanceVars } from './composables/use-appearance-vars'
+import { useOverscrollLock } from './composables/use-overscroll-lock'
+import { useThemeColor } from './composables/use-theme-color'
+import {
+  showDaeConfigModal,
+  showUpdateConfigModal,
+  showUpgradeCoreModal,
+} from '@/helper/backend-actions'
 import ConfirmDialogHost from './components/common/ConfirmDialogHost.vue'
-import { useKeyboard } from './composables/keyboard'
+import { useKeyboard } from './composables/use-keyboard'
 import { EMOJIS, FONTS } from './constant'
 import {
   autoImportSettings,
   autoSyncSettings,
   importSettingsFromUrl,
   syncSettingsFromCore,
-} from './helper/autoImportSettings'
+} from './helper/auto-import-settings'
 import { backgroundImage } from './helper/indexeddb'
 import { initNotification } from './helper/notification'
-import { getBackendFromUrl, isPreferredDark } from './helper/utils'
-import { disablePullToRefresh, emoji, font, theme } from './store/settings'
+import { getBackendFromUrl } from './helper/utils'
+import { emoji, font, theme } from './store/settings'
 import { backendList, setActiveBackend } from './store/setup'
 import type { Backend } from './types'
 
@@ -32,7 +38,6 @@ const toast = ref<HTMLElement>()
 
 initNotification(toast as Ref<HTMLElement>)
 
-// 字体类名映射表
 const FONT_CLASS_MAP = {
   [EMOJIS.TWEMOJI]: {
     [FONTS.MI_SANS]: 'font-MiSans-Twemoji',
@@ -56,92 +61,15 @@ const fontClassName = computed(() => {
   )
 })
 
-const setThemeColor = () => {
-  if (!app.value) return
+const { setThemeColor } = useThemeColor(app)
 
-  const themeColor = getComputedStyle(app.value!).getPropertyValue('background-color').trim()
-  const metaThemeColor = document.querySelector('meta[name="theme-color"]')
-  if (metaThemeColor) {
-    metaThemeColor.setAttribute('content', themeColor)
-  }
-}
+useOverscrollLock()
 
-watch(isPreferredDark, setThemeColor)
 watch(
   theme,
   () => {
-    document.body.setAttribute('data-theme', theme.value)
+    document.documentElement.setAttribute('data-theme', theme.value)
     setThemeColor()
-  },
-  {
-    immediate: true,
-  },
-)
-
-// iOS bounces the whole page when a vertical drag has nowhere left to scroll:
-// either it's over a non-scrollable area (so the drag pans the layout viewport),
-// or it's inside a scroll container already at its top/bottom edge and the
-// leftover scroll chains up to the document. Classic iOS scroll-lock: find the
-// nearest vertically-scrollable ancestor and only let the drag through while
-// that element can still move in the drag direction; otherwise cancel it so
-// nothing reaches the page.
-let touchStartX = 0
-let touchStartY = 0
-
-const onTouchStart = (event: TouchEvent) => {
-  touchStartX = event.touches[0].clientX
-  touchStartY = event.touches[0].clientY
-}
-
-const findScrollableY = (target: EventTarget | null) => {
-  let el = target as HTMLElement | null
-  while (el && el !== document.body && el !== document.documentElement) {
-    const { overflowY } = getComputedStyle(el)
-    if ((overflowY === 'auto' || overflowY === 'scroll') && el.scrollHeight > el.clientHeight) {
-      return el
-    }
-    el = el.parentElement
-  }
-  return null
-}
-
-const onTouchMove = (event: TouchEvent) => {
-  if (event.touches.length > 1) return
-
-  const deltaX = event.touches[0].clientX - touchStartX
-  const deltaY = event.touches[0].clientY - touchStartY
-  // Leave horizontal gestures (e.g. swiping a horizontally-scrollable table) be.
-  if (Math.abs(deltaY) <= Math.abs(deltaX)) return
-
-  const el = findScrollableY(event.target)
-  if (!el) {
-    event.preventDefault()
-    return
-  }
-
-  const atTop = el.scrollTop <= 0
-  const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1
-  // deltaY > 0 means dragging downward (revealing content above).
-  if ((atTop && deltaY > 0) || (atBottom && deltaY < 0)) {
-    event.preventDefault()
-  }
-}
-
-watch(
-  disablePullToRefresh,
-  () => {
-    const body = document.body
-    if (disablePullToRefresh.value) {
-      body.style.overscrollBehavior = 'none'
-      body.style.overflow = 'hidden'
-      document.addEventListener('touchstart', onTouchStart, { passive: true })
-      document.addEventListener('touchmove', onTouchMove, { passive: false })
-    } else {
-      body.style.overscrollBehavior = ''
-      body.style.overflow = ''
-      document.removeEventListener('touchstart', onTouchStart)
-      document.removeEventListener('touchmove', onTouchMove)
-    }
   },
   {
     immediate: true,
@@ -176,8 +104,6 @@ const autoSwitchToURLBackendIfExists = () => {
 autoSwitchToURLBackendIfExists()
 
 onMounted(async () => {
-  setThemeColor()
-
   if (autoImportSettings.value) {
     await importSettingsFromUrl()
   }
@@ -206,17 +132,17 @@ useKeyboard()
     ]"
     :style="[backgroundImage, { height: 'var(--app-height, 100dvh)' }]"
   >
+    <div
+      aria-hidden="true"
+      class="status-bar-tint"
+    />
     <RouterView />
     <BackendSwitchToast />
     <BackendConnectionError />
     <BackendManager />
-    <!-- 后端维护动作的弹窗:侧边栏菜单和设置页都会拉起,挂在这里两处入口才都有效。 -->
     <UpgradeCoreModal v-model="showUpgradeCoreModal" />
     <UpdateConfigModal v-model="showUpdateConfigModal" />
-    <!--
-      确认弹窗排在所有弹窗之后:它们都 teleport 到 #app-content 且同一层 z-index,
-      谁后插进 DOM 谁在上面。升级内核的确认是从弹窗里拉起的,排前面就会被压在底下。
-    -->
+    <DaeConfigModal v-model="showDaeConfigModal" />
     <ConfirmDialogHost />
     <div
       ref="toast"
@@ -224,3 +150,118 @@ useKeyboard()
     />
   </div>
 </template>
+
+<style>
+.status-bar-tint {
+  display: none;
+}
+
+@supports (-webkit-touch-callout: none) {
+  .status-bar-tint {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 2147483647;
+    display: block;
+    height: 12px;
+    background-color: var(--status-bar-tint, var(--color-base-100));
+    opacity: 0.12;
+    pointer-events: none;
+  }
+}
+
+.app-toast-region {
+  position: fixed;
+  top: calc(0.75rem + env(safe-area-inset-top, 0px));
+  right: calc(0.75rem + env(safe-area-inset-right, 0px));
+  z-index: 100000;
+  display: flex;
+  width: min(24rem, calc(100vw - 1.5rem));
+  flex-direction: column;
+  gap: 0.625rem;
+  pointer-events: none;
+}
+
+@media (min-width: 768px) {
+  .app-toast-region {
+    top: calc(2.75rem + env(safe-area-inset-top, 0px));
+    right: calc(1rem + env(safe-area-inset-right, 0px));
+  }
+}
+
+.app-toast {
+  --toast-accent: var(--color-primary);
+  grid-template-columns: 0.25rem 1.75rem minmax(0, 1fr) 1.5rem;
+  animation: appToastIn 0.22s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+.app-toast[data-toast-type='success'] {
+  --toast-accent: var(--color-success);
+}
+
+.app-toast[data-toast-type='error'] {
+  --toast-accent: var(--color-error);
+}
+
+.app-toast[data-toast-type='warning'] {
+  --toast-accent: var(--color-warning);
+}
+
+.app-toast[data-toast-type='info'] {
+  --toast-accent: var(--color-info);
+}
+
+.app-toast.is-leaving {
+  pointer-events: none;
+  animation: appToastOut 0.16s ease-in both;
+}
+
+.app-toast__content {
+  min-width: 0;
+  padding-top: 0.2rem;
+  color: var(--color-base-content);
+  font-size: 0.875rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+@keyframes appToastIn {
+  from {
+    opacity: 0;
+    transform: translateX(0.75rem) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes appToastOut {
+  from {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(0.5rem) scale(0.98);
+  }
+}
+
+@keyframes progressBar {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-toast,
+  .app-toast.is-leaving {
+    animation-duration: 0.01ms;
+  }
+}
+</style>

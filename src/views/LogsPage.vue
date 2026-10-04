@@ -27,14 +27,15 @@
 </template>
 
 <script setup lang="ts">
+import { logs } from '@/assembly/logs'
 import VirtualScroller from '@/components/common/VirtualScroller.vue'
 import LogsCtrl from '@/components/controls/LogsCtrl.tsx'
 import LogsCard from '@/components/logs/LogsCard.vue'
 import LogsTable from '@/components/logs/LogsTable.vue'
-import { usePaddingForViews } from '@/composables/paddingViews'
+import { usePaddingForViews } from '@/composables/use-padding-for-views'
 import { LIST_DISPLAY_STYLE } from '@/constant'
 import { toSearchRegex } from '@/helper/search'
-import { logFilter, logFilterEnabled, logFilterRegex, logTypeFilter, logs } from '@/store/logs'
+import { logFilter, logFilterEnabled, logFilterRegex, logTypeFilter } from '@/store/logs'
 import { logDisplayStyle } from '@/store/settings'
 import type { LogWithSeq } from '@/types'
 import { computed } from 'vue'
