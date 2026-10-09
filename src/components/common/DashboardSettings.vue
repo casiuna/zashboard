@@ -217,6 +217,7 @@ import {
   syncSettingsFromCore,
 } from '@/helper/auto-import-settings'
 import { LOCAL_IMAGE } from '@/helper/indexeddb'
+import { NikkiIntegrationError } from '@/helper/nikki'
 import { dismissNotification, notifyActionPending, showNotification } from '@/helper/notification'
 import { notifyRequestError } from '@/helper/request-error'
 import { useTooltip } from '@/composables/use-tooltip'
@@ -269,9 +270,16 @@ const handlerJsonUpload = () => {
   if (!file) return
   const reader = new FileReader()
   reader.onload = async () => {
-    const settings = JSON.parse(reader.result as string)
-    applyDashboardSettingsToStorage(settings)
-    location.reload()
+    try {
+      const settings = JSON.parse(reader.result as string)
+      applyDashboardSettingsToStorage(settings)
+      location.reload()
+    } catch (error) {
+      showNotification({
+        content: error instanceof NikkiIntegrationError ? error.key : 'nikkiInvalidBackup',
+        type: 'alert-error',
+      })
+    }
   }
   reader.readAsText(file)
 }

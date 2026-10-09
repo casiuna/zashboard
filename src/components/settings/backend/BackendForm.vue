@@ -91,6 +91,56 @@
         {{ $t('daeSetupRequiredTip') }}
       </span>
     </div>
+    <div
+      v-if="!isDae"
+      class="border-base-border flex flex-col gap-2 border-t pt-3"
+    >
+      <label class="flex items-center justify-between gap-2 text-sm">
+        <span>{{ $t('nikkiIntegrationEnable') }}</span>
+        <input
+          v-model="nikkiEnabled"
+          type="checkbox"
+          class="toggle"
+          name="nikki-enabled"
+        />
+      </label>
+      <template v-if="nikkiEnabled">
+        <label class="flex flex-col gap-1 text-sm">
+          {{ $t('nikkiRefreshPath') }}
+          <TextInput
+            v-model="nikkiRefreshPath"
+            class="w-full"
+            name="nikki-refresh-path"
+          />
+        </label>
+        <label class="flex flex-col gap-1 text-sm">
+          {{ $t('nikkiBridgeOrigin') }} ({{ $t('optional') }})
+          <TextInput
+            v-model="nikkiBridgeOrigin"
+            class="w-full"
+            name="nikki-bridge-origin"
+          />
+        </label>
+        <p class="text-base-content/60 text-xs">{{ $t('nikkiBridgeOriginTip') }}</p>
+        <p
+          v-if="nikkiError"
+          class="text-error text-xs"
+          role="alert"
+        >
+          {{ $t(nikkiError) }}
+        </p>
+        <template v-else>
+          <p class="text-xs break-all">{{ $t('nikkiRequestURL') }}: {{ nikkiURL }}</p>
+          <p
+            v-if="nikkiURL.startsWith('http:')"
+            class="text-warning text-xs"
+            role="note"
+          >
+            {{ $t('nikkiInsecureWarning') }}
+          </p>
+        </template>
+      </template>
+    </div>
   </div>
 </template>
 
@@ -99,6 +149,11 @@ import SegmentedControl from '@/components/common/SegmentedControl.vue'
 import SelectInput from '@/components/common/SelectInput.vue'
 import TextInput from '@/components/common/TextInput.vue'
 import { fetchDaeDiscovery } from '@/api/dae-auth'
+import {
+  DEFAULT_NIKKI_REFRESH_PATH,
+  getNikkiIntegrationError,
+  getNikkiRefreshURL,
+} from '@/helper/nikki'
 import type { Backend, BackendType, DaeAuthMode } from '@/types'
 import { QuestionMarkCircleIcon } from '@heroicons/vue/24/outline'
 import { watchDebounced } from '@vueuse/core'
@@ -112,6 +167,35 @@ const backendTypeOptions = [
 ]
 
 const isDae = computed(() => model.value.type === 'dae')
+
+const nikkiEnabled = computed({
+  get: () => model.value.nikkiIntegration?.enabled === true,
+  set: (enabled: boolean) => {
+    model.value.nikkiIntegration = {
+      refreshPath: DEFAULT_NIKKI_REFRESH_PATH,
+      ...model.value.nikkiIntegration,
+      enabled,
+    }
+  },
+})
+const nikkiRefreshPath = computed({
+  get: () => model.value.nikkiIntegration?.refreshPath ?? DEFAULT_NIKKI_REFRESH_PATH,
+  set: (refreshPath: string) => {
+    model.value.nikkiIntegration = { ...model.value.nikkiIntegration!, refreshPath }
+  },
+})
+const nikkiBridgeOrigin = computed({
+  get: () => model.value.nikkiIntegration?.bridgeOrigin ?? '',
+  set: (bridgeOrigin: string) => {
+    model.value.nikkiIntegration = { ...model.value.nikkiIntegration!, bridgeOrigin }
+  },
+})
+const nikkiError = computed(() => getNikkiIntegrationError(model.value, window.location.protocol))
+const nikkiURL = computed(() =>
+  nikkiEnabled.value && !nikkiError.value && !isDae.value
+    ? getNikkiRefreshURL(model.value, window.location.protocol)
+    : '',
+)
 
 const authMode = ref<DaeAuthMode | ''>('')
 const setupRequired = ref(false)

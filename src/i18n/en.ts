@@ -43,6 +43,26 @@ const en = {
   reloadConfigsSuccess: 'Configs reloaded successfully',
   refreshNikkiSubscription: 'Update Subscription',
   refreshNikkiSubscriptionSuccess: 'Subscription updated successfully',
+  nikkiIntegrationEnable: 'Enable Nikki subscription updates',
+  nikkiRefreshPath: 'CGI path',
+  nikkiBridgeOrigin: 'Bridge origin',
+  nikkiBridgeOriginTip:
+    'Default: the backend protocol and host with the Web server default port, not the controller port. You may override the protocol and port, but not the host. Example: https://router.example:8443.',
+  nikkiRequestURL: 'Request URL',
+  nikkiInsecureWarning:
+    'This HTTP request sends the controller secret without encryption. Enable it only for a trusted device and network; prefer an HTTPS bridge.',
+  nikkiIntegrationDisabled: 'Nikki integration is not enabled for this backend.',
+  nikkiInvalidHost: 'Enter a valid backend hostname or IPv4/IPv6 address, without a port or path.',
+  nikkiInvalidPath:
+    'Use a path starting with a single /, such as /cgi-bin/nikki-refresh. URLs, escapes, query strings and . or .. segments are not allowed.',
+  nikkiInvalidOrigin: 'Bridge origin must be http(s)://host[:port], without credentials or a path.',
+  nikkiOriginHostMismatch:
+    'Bridge host must match the backend host to protect the controller secret.',
+  nikkiMixedContent: 'An HTTPS dashboard cannot call an HTTP bridge. Configure an HTTPS bridge.',
+  nikkiInvalidBackup: 'Invalid or ambiguous Nikki integration settings; nothing was restored.',
+  nikkiInvalidResponse: 'The Nikki bridge did not return a successful JSON response.',
+  nikkiBridgeNotFound:
+    'Nikki CGI bridge not found (HTTP 404). Check that it is installed and the CGI path is correct.',
   updateGeoSuccess: 'Geo database updated successfully',
   actionRunning: '{action}...',
   chains: 'Chains',

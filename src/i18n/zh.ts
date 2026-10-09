@@ -45,6 +45,25 @@ const zh: LANG_MESSAGE = {
   reloadConfigsSuccess: '配置重载成功',
   refreshNikkiSubscription: '更新订阅',
   refreshNikkiSubscriptionSuccess: '订阅更新成功',
+  nikkiIntegrationEnable: '启用 Nikki 订阅更新',
+  nikkiRefreshPath: 'CGI 路径',
+  nikkiBridgeOrigin: 'Bridge 来源地址',
+  nikkiBridgeOriginTip:
+    '默认使用后端协议和主机、Web 服务默认端口，不使用 controller 端口。可单独指定协议和端口，但不能更换主机。例如：https://router.example:8443。',
+  nikkiRequestURL: '请求地址',
+  nikkiInsecureWarning:
+    '此 HTTP 请求会明文发送 controller secret。仅对可信设备和网络启用，优先使用 HTTPS Bridge。',
+  nikkiIntegrationDisabled: '当前后端未启用 Nikki 集成。',
+  nikkiInvalidHost: '请输入有效域名或 IPv4/IPv6 地址，不要包含端口或路径。',
+  nikkiInvalidPath:
+    '请使用以单个 / 开头的路径，例如 /cgi-bin/nikki-refresh；不允许完整 URL、转义、查询参数及 . 或 .. 路径段。',
+  nikkiInvalidOrigin: 'Bridge 地址必须为 http(s)://主机[:端口]，不能包含凭据或路径。',
+  nikkiOriginHostMismatch: '为保护 controller secret，Bridge 主机必须与后端主机一致。',
+  nikkiMixedContent: 'HTTPS 面板不能调用 HTTP Bridge，请配置 HTTPS Bridge。',
+  nikkiInvalidBackup: 'Nikki 集成配置无效或存在歧义，未恢复任何配置。',
+  nikkiInvalidResponse: 'Nikki Bridge 未返回成功的 JSON 响应。',
+  nikkiBridgeNotFound:
+    '未找到 Nikki CGI Bridge（HTTP 404），请检查是否已安装以及 CGI 路径是否正确。',
   updateGeoSuccess: 'GEO数据库更新成功',
   actionRunning: '{action}执行中…',
   chains: '代理链',

@@ -12,6 +12,7 @@ import { fetchRules } from '@/assembly/rules'
 import { restartCore } from '@/assembly/version'
 import { BACKEND_ITEM_KEYS } from '@/config/settings-items'
 import { showConfirmDialog } from '@/helper/confirm-dialog'
+import { isNikkiIntegrationEnabled } from '@/helper/nikki'
 import { notifyActionPending, showNotification } from '@/helper/notification'
 import { notifyRequestError } from '@/helper/request-error'
 import { isSettingHidden } from '@/helper/settings'
@@ -144,7 +145,7 @@ export const backendActions = computed<BackendAction[]>(() => {
     })
   }
 
-  if (activeBackend.value.host === '192.168.31.2') {
+  if (isNikkiIntegrationEnabled(activeBackend.value)) {
     actions.push({
       key: k.refreshNikkiSubscription,
       label: 'refreshNikkiSubscription',

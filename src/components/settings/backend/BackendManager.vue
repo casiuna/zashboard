@@ -133,6 +133,7 @@ import ReachabilityIndicator from '@/components/common/ReachabilityIndicator.vue
 import { useBackendListProbe } from '@/composables/use-backend-list-probe'
 import { useBackendReachability } from '@/composables/use-backend-reachability'
 import { ROUTE_NAME } from '@/constant'
+import { getNikkiIntegrationError } from '@/helper/nikki'
 import { showNotification } from '@/helper/notification'
 import { getLabelFromBackend } from '@/helper/utils'
 import router from '@/router'
@@ -200,7 +201,13 @@ const editForm = ref<Omit<Backend, 'uuid'> | null>(null)
 const isSaving = ref(false)
 
 const reachability = useBackendReachability(editForm)
-const canSave = computed(() => reachability.status.value === 'online' && !isSaving.value)
+const canSave = computed(
+  () =>
+    reachability.status.value === 'online' &&
+    !isSaving.value &&
+    !!editForm.value &&
+    !getNikkiIntegrationError(editForm.value, window.location.protocol),
+)
 
 watch(
   () => (view.value?.mode === 'edit' ? `edit:${view.value.uuid}` : (view.value?.mode ?? '')),
@@ -235,6 +242,7 @@ watch(
       label: backend.label || '',
       disableUpgradeCore: backend.disableUpgradeCore || false,
       disableTunMode: backend.disableTunMode || false,
+      ...(backend.nikkiIntegration ? { nikkiIntegration: { ...backend.nikkiIntegration } } : {}),
     }
   },
   { immediate: true },
@@ -283,6 +291,12 @@ const handleSave = async () => {
   const form = editForm.value
 
   if (!form || !current || current.mode === 'list') return
+
+  const nikkiError = getNikkiIntegrationError(form, window.location.protocol)
+  if (nikkiError) {
+    showNotification({ content: nikkiError, type: 'alert-error' })
+    return
+  }
 
   isSaving.value = true
 

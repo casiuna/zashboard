@@ -45,6 +45,27 @@ const ru: LANG_MESSAGE = {
   reloadConfigsSuccess: 'Конфигурации успешно перезагружены',
   refreshNikkiSubscription: 'Обновить подписку',
   refreshNikkiSubscriptionSuccess: 'Подписка успешно обновлена',
+  nikkiIntegrationEnable: 'Включить обновление подписки Nikki',
+  nikkiRefreshPath: 'Путь CGI',
+  nikkiBridgeOrigin: 'Адрес bridge',
+  nikkiBridgeOriginTip:
+    'По умолчанию используются протокол и хост бэкенда с портом веб-сервера, не контроллера. Можно изменить протокол и порт, но не хост. Пример: https://router.example:8443.',
+  nikkiRequestURL: 'Адрес запроса',
+  nikkiInsecureWarning:
+    'HTTP передаёт секрет контроллера без шифрования. Включайте только для доверенного устройства и сети; предпочтителен HTTPS bridge.',
+  nikkiIntegrationDisabled: 'Интеграция Nikki для этого бэкенда не включена.',
+  nikkiInvalidHost: 'Укажите корректный хост или адрес IPv4/IPv6 без порта и пути.',
+  nikkiInvalidPath:
+    'Путь должен начинаться с одного /, например /cgi-bin/nikki-refresh. URL, экранирование, параметры запроса и сегменты . или .. запрещены.',
+  nikkiInvalidOrigin:
+    'Адрес bridge должен иметь вид http(s)://хост[:порт], без учётных данных и пути.',
+  nikkiOriginHostMismatch:
+    'Для защиты секрета контроллера хост bridge должен совпадать с хостом бэкенда.',
+  nikkiMixedContent: 'Панель HTTPS не может обращаться к HTTP bridge. Настройте HTTPS bridge.',
+  nikkiInvalidBackup: 'Настройки Nikki некорректны или неоднозначны; ничего не восстановлено.',
+  nikkiInvalidResponse: 'Bridge Nikki не вернул успешный ответ JSON.',
+  nikkiBridgeNotFound:
+    'CGI bridge Nikki не найден (HTTP 404). Проверьте установку bridge и путь CGI.',
   updateGeoSuccess: 'Geo база данных успешно обновлена',
   actionRunning: '{action}: выполняется…',
   chains: 'Цепочки',

@@ -1,8 +1,13 @@
 import { getSyncedSettings } from '@/assembly/storage'
 import { useStorage } from '@/composables/use-storage'
 import { showConfirmDialog } from '@/helper/confirm-dialog'
+import { NikkiIntegrationError } from '@/helper/nikki'
+import { NIKKI_SETTINGS_KEY } from '@/helper/nikki-settings'
 import { showNotification } from '@/helper/notification'
-import { applyDashboardSettingsToStorage } from '@/helper/utils'
+import {
+  applyDashboardSettingsToStorage,
+  applyNikkiIntegrationSettingsToStorage,
+} from '@/helper/utils'
 import { i18n } from '@/i18n'
 import { isEmpty } from 'lodash'
 const IMPORT_SETTINGS_URL_KEY = 'config/import-settings-url'
@@ -166,12 +171,20 @@ export const importSettingsFromUrl = async ({
     return false
   }
 
-  showNotification({
-    content: 'importing',
-  })
+  try {
+    applyNikkiIntegrationSettingsToStorage(settings)
+  } catch (error) {
+    showNotification({
+      content: error instanceof NikkiIntegrationError ? error.key : 'nikkiInvalidBackup',
+      type: 'alert-error',
+    })
+    return false
+  }
+  showNotification({ content: 'importing' })
   autoImportSettingsHash.value = newHash
 
   for (const key in settings) {
+    if (key === NIKKI_SETTINGS_KEY) continue
     if (key === IMPORT_SETTINGS_URL_KEY && !settings[key]) {
       continue
     }

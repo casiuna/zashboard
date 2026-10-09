@@ -3,6 +3,11 @@ import type { Backend, BackendType } from '@/types'
 import { useMediaQuery } from '@vueuse/core'
 import dayjs from 'dayjs'
 import prettyBytes, { type Options } from 'pretty-bytes'
+import {
+  exportNikkiIntegrationSettings,
+  NIKKI_SETTINGS_KEY,
+  restoreNikkiIntegrationSettings,
+} from './nikki-settings'
 
 export const isPreferredDark = useMediaQuery('(prefers-color-scheme: dark)')
 export const isMiddleScreen = useMediaQuery('(max-width: 768px)')
@@ -42,17 +47,29 @@ export const getDashboardSettingsFromStorage = () => {
   const settings: Record<string, string> = {}
 
   for (const key in localStorage) {
-    if (key.startsWith('config/')) {
+    if (key.startsWith('config/') && key !== NIKKI_SETTINGS_KEY) {
       settings[key] = localStorage.getItem(key) as string
     }
   }
 
+  const backends: Backend[] = JSON.parse(localStorage.getItem('setup/api-list') || '[]')
+  if (backends.some((backend) => backend.nikkiIntegration)) {
+    settings[NIKKI_SETTINGS_KEY] = exportNikkiIntegrationSettings(backends)
+  }
   return settings
 }
 
+export const applyNikkiIntegrationSettingsToStorage = (settings: Record<string, unknown>) => {
+  if (!(NIKKI_SETTINGS_KEY in settings)) return
+  const backends: Backend[] = JSON.parse(localStorage.getItem('setup/api-list') || '[]')
+  const restored = restoreNikkiIntegrationSettings(backends, settings[NIKKI_SETTINGS_KEY])
+  localStorage.setItem('setup/api-list', JSON.stringify(restored))
+}
+
 export const applyDashboardSettingsToStorage = (settings: Record<string, unknown>) => {
+  applyNikkiIntegrationSettingsToStorage(settings)
   for (const key in settings) {
-    if (key.startsWith('config/')) {
+    if (key.startsWith('config/') && key !== NIKKI_SETTINGS_KEY) {
       localStorage.setItem(key, settings[key] as string)
     }
   }
@@ -84,7 +101,8 @@ export const getUrlFromBackend = (end: {
   port: string
   secondaryPath?: string
 }) => {
-  return `${end.protocol}://${end.host}:${end.port}${end.secondaryPath || ''}`
+  const host = end.host.includes(':') && !end.host.startsWith('[') ? `[${end.host}]` : end.host
+  return `${end.protocol}://${host}:${end.port}${end.secondaryPath || ''}`
 }
 
 export const getBackendProbeUrl = (end: Omit<Backend, 'uuid'>) => getUrlFromBackend(end)

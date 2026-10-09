@@ -3,6 +3,12 @@ import type { DaeConnectionRawMessage } from './dae'
 
 export type BackendType = 'clash' | 'dae'
 
+export type NikkiIntegration = {
+  enabled: boolean
+  refreshPath: string
+  bridgeOrigin?: string
+}
+
 export type Backend = {
   type: BackendType
   protocol: string
@@ -15,6 +21,7 @@ export type Backend = {
   label?: string
   disableUpgradeCore?: boolean
   disableTunMode?: boolean
+  nikkiIntegration?: NikkiIntegration
 }
 
 export type Config = {

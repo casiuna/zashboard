@@ -64,6 +64,7 @@ import { ROUTE_NAME } from '@/constant'
 import { syncSettingsFromCore } from '@/helper/auto-import-settings'
 import { useBackendReachability } from '@/composables/use-backend-reachability'
 import { describeProbeFailure } from '@/helper/connectivity'
+import { getNikkiIntegrationError } from '@/helper/nikki'
 import { showNotification } from '@/helper/notification'
 import { getBackendFromUrl, getBackendProbeUrl } from '@/helper/utils'
 import router from '@/router'
@@ -84,7 +85,12 @@ const form = ref<Omit<Backend, 'uuid'>>({
 const reachability = useBackendReachability(form)
 
 const isSubmitting = ref(false)
-const canSubmit = computed(() => reachability.status.value === 'online' && !isSubmitting.value)
+const canSubmit = computed(
+  () =>
+    reachability.status.value === 'online' &&
+    !isSubmitting.value &&
+    !getNikkiIntegrationError(form.value, window.location.protocol),
+)
 
 type SetupForm = Omit<Backend, 'uuid'>
 
@@ -103,6 +109,12 @@ const handleSubmit = async (setupForm: SetupForm, quiet = false) => {
 
   if (!protocol || !host || !port) return
   if (isSubmitting.value) return
+
+  const nikkiError = getNikkiIntegrationError(setupForm, window.location.protocol)
+  if (nikkiError) {
+    if (!quiet) showNotification({ content: nikkiError, type: 'alert-error' })
+    return
+  }
 
   if (
     window.location.protocol === 'https:' &&
